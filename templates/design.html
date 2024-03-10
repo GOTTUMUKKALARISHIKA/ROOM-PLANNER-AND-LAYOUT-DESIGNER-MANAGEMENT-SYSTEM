@@ -1,0 +1,158 @@
+{% include 'header.html' %}
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <title>Draggable Shapes to Canvas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #26d5ec;
+            color: #fff;
+            text-align: center;
+            padding: 1em;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        #shape-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .draggable-shape {
+            width: 100px; /* Adjust width as needed */
+            height: auto; /* Automatically adjust height */
+            margin: 0 10px;
+            cursor: pointer;
+        }
+
+        #canvas {
+            width: 80%;
+            height: 500px;
+            border: 2px solid #333;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 1em;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Draggable Shapes to Canvas</h1>
+    </header>
+
+    <main>
+        <div id="shape-container">
+            <img src="{% static 'images/image2.jpg' %}" class="draggable-shape" draggable="true" ondragstart="drag(event)">
+            <img src="{% static 'images/ROOM PLANNER.jpg' %}" class="draggable-shape" draggable="true" ondragstart="drag(event)">
+        </div>
+
+        <div>
+            <label for="canvas-color">Choose Canvas Color: </label>
+            <input type="color" id="canvas-color">
+        </div>
+
+        <div id="canvas" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Draggable Shapes to Canvas</p>
+    </footer>
+
+<script>
+    function allowDrop(event) {
+        event.preventDefault();
+    }
+
+    function drag(event) {
+        event.dataTransfer.setData("text", event.target.src);
+    }
+
+    function drop(event) {
+        event.preventDefault();
+        const draggedElementSrc = event.dataTransfer.getData("text");
+        const canvas = document.getElementById('canvas');
+
+        if (event.target.id === 'canvas') {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            // Check for existing element at the drop position
+            const existingElement = document.elementFromPoint(x, y);
+            if (existingElement && existingElement.parentNode === canvas) {
+                canvas.removeChild(existingElement); // Remove existing element
+            }
+
+            const newElement = document.createElement('img');
+            newElement.src = draggedElementSrc;
+            newElement.className = 'draggable-image';
+            newElement.style.position = 'absolute';
+            newElement.style.left = `${x}px`;
+            newElement.style.top = `${y}px`;
+            newElement.style.width = '150px'; /* Adjust width as needed */
+            newElement.style.height = 'auto'; /* Automatically adjust height */
+            newElement.draggable = true;
+
+            // Remove the drag event listener from existing elements
+            const existingElements = canvas.getElementsByClassName('draggable-image');
+            Array.from(existingElements).forEach(el => {
+                el.removeEventListener('dragstart', drag);
+            });
+
+            canvas.appendChild(newElement);
+            newElement.addEventListener('dragstart', drag);
+        }
+    }
+
+    function handleKeyDown(event) {
+        if (event.key === 'Delete') {
+            const canvas = document.getElementById('canvas');
+            const selectedElement = canvas.querySelector('.draggable-image:hover'); // Select by hover
+
+            if (selectedElement && selectedElement.parentNode === canvas) {
+                canvas.removeChild(selectedElement);
+            }
+        }
+    }
+
+    function changeCanvasColor() {
+        const canvas = document.getElementById('canvas');
+        const colorInput = document.getElementById('canvas-color');
+        canvas.style.backgroundColor = colorInput.value;
+    }
+
+    // Add event listener for keydown on the whole document
+    document.addEventListener('keydown', handleKeyDown);
+
+    // Add event listener to change the canvas color when color input changes
+    const colorInput = document.getElementById('canvas-color');
+    colorInput.addEventListener('click', changeCanvasColor);
+
+</script>
+    
+</body>
+</html>

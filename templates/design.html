@@ -35,8 +35,8 @@
         }
 
         .draggable-shape {
-            width: 100px; /* Adjust width as needed */
-            height: auto; /* Automatically adjust height */
+            width: 100px;
+            height: auto;
             margin: 0 10px;
             cursor: pointer;
         }
@@ -56,39 +56,64 @@
             padding: 1em;
             margin-top: auto;
         }
+
+        /* Dragging feedback styles */
+        .dragging {
+            opacity: 0.6;
+        }
+
+        img.draggable-image {
+            cursor: move;
+        }
+
+        .selected {
+            border: 2px solid red;
+        }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Draggable Shapes to Canvas</h1>
-    </header>
+<main>
+    <div id="shape-container">
+        <!-- Existing draggable shapes -->
+        <img src="{% static 'images/img1.jpg' %}" class="draggable-shape" draggable="true" ondragstart="drag(event)">
+        <img src="{% static 'images/img2.jpg' %}" class="draggable-shape" draggable="true" ondragstart="drag(event)">
+        <img src="{% static 'images/img3.jpg' %}" class="draggable-shape" draggable="true" ondragstart="drag(event)">
+        <img src="{% static 'images/img4.jpg' %}" class="draggable-shape" draggable="true" ondragstart="drag(event)">
+        <img src="{% static 'images/img5.png' %}" class="draggable-shape" draggable="true" ondragstart="drag(event)">
+        <img src="{% static 'images/img6.png' %}" class="draggable-shape" draggable="true" ondragstart="drag(event)">
+        <img src="{% static 'images/img7.png' %}" class="draggable-shape" draggable="true" ondragstart="drag(event)">
+        <img src="{% static 'images/img8.png' %}" class="draggable-shape" draggable="true" ondragstart="drag(event)">
+    </div>
 
-    <main>
-        <div id="shape-container">
-            <img src="{% static 'images/image2.jpg' %}" class="draggable-shape" draggable="true" ondragstart="drag(event)">
-            <img src="{% static 'images/ROOM PLANNER.jpg' %}" class="draggable-shape" draggable="true" ondragstart="drag(event)">
-        </div>
+    <div>
+        <label for="canvas-color">Choose Canvas Color: </label>
+        <input type="color" id="canvas-color">
+    </div>
 
-        <div>
-            <label for="canvas-color">Choose Canvas Color: </label>
-            <input type="color" id="canvas-color">
-        </div>
+    <div id="canvas" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
 
-        <div id="canvas" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-    </main>
+    <!-- Download canvas image button -->
+    <button onclick="convertToImage()">Download</button>
+</main>
 
-    <footer>
-        <p>&copy; 2024 Draggable Shapes to Canvas</p>
-    </footer>
+<footer>
+    <p>&copy; 2024 Draggable Shapes to Canvas</p>
+</footer>
 
 <script>
+    let offsetX = 0;
+    let offsetY = 0;
+
     function allowDrop(event) {
         event.preventDefault();
     }
 
     function drag(event) {
+        event.target.classList.add('dragging');
         event.dataTransfer.setData("text", event.target.src);
+        offsetX = event.clientX - event.target.getBoundingClientRect().left;
+        offsetY = event.clientY - event.target.getBoundingClientRect().top;
     }
 
     function drop(event) {
@@ -97,46 +122,72 @@
         const canvas = document.getElementById('canvas');
 
         if (event.target.id === 'canvas') {
-            const rect = canvas.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
+            event.target.classList.remove('dragging');
 
-            // Check for existing element at the drop position
-            const existingElement = document.elementFromPoint(x, y);
-            if (existingElement && existingElement.parentNode === canvas) {
-                canvas.removeChild(existingElement); // Remove existing element
-            }
+            const rect = canvas.getBoundingClientRect();
+            let x = event.clientX - rect.left - offsetX;
+            let y = event.clientY - rect.top - offsetY;
+
+            // Adjust x and y to ensure the image stays within the canvas boundaries
+            x = Math.min(Math.max(x, 0), rect.width - 150); // 150 is the width of the image
+            y = Math.min(Math.max(y, 0), rect.height - 150); // 150 is the height of the image
 
             const newElement = document.createElement('img');
             newElement.src = draggedElementSrc;
             newElement.className = 'draggable-image';
             newElement.style.position = 'absolute';
-            newElement.style.left = `${x}px`;
-            newElement.style.top = `${y}px`;
-            newElement.style.width = '150px'; /* Adjust width as needed */
-            newElement.style.height = 'auto'; /* Automatically adjust height */
-            newElement.draggable = true;
+            newElement.style.left = `${x}px`; // Corrected syntax
+            newElement.style.top = `${y}px`; // Corrected syntax
+            newElement.style.width = '150px';
+            newElement.style.height = 'auto';
 
-            // Remove the drag event listener from existing elements
-            const existingElements = canvas.getElementsByClassName('draggable-image');
-            Array.from(existingElements).forEach(el => {
-                el.removeEventListener('dragstart', drag);
-            });
+            // Add event listener to delete the image when clicked
+            newElement.addEventListener('click', deleteImage);
+
+            // Add event listener to rotate the image when double-clicked
+            newElement.addEventListener('dblclick', rotateImage);
 
             canvas.appendChild(newElement);
-            newElement.addEventListener('dragstart', drag);
         }
     }
 
-    function handleKeyDown(event) {
-        if (event.key === 'Delete') {
-            const canvas = document.getElementById('canvas');
-            const selectedElement = canvas.querySelector('.draggable-image:hover'); // Select by hover
+    function convertToImage() {
+        // Get the canvas element
+        const canvas = document.getElementById('canvas');
 
-            if (selectedElement && selectedElement.parentNode === canvas) {
-                canvas.removeChild(selectedElement);
-            }
-        }
+        // Create a temporary canvas element
+        const tempCanvas = document.createElement('canvas');
+        const context = tempCanvas.getContext('2d');
+
+        // Set the size of the temporary canvas to match the original canvas
+        tempCanvas.width = canvas.offsetWidth;
+        tempCanvas.height = canvas.offsetHeight;
+
+        // Set canvas background color
+        const colorInput = document.getElementById('canvas-color');
+        context.fillStyle = colorInput.value;
+        context.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+        // Draw all the images on the temporary canvas
+        const images = canvas.querySelectorAll('.draggable-image');
+        images.forEach(img => {
+            const imgRect = img.getBoundingClientRect();
+            context.drawImage(img, imgRect.left - canvas.getBoundingClientRect().left, imgRect.top - canvas.getBoundingClientRect().top, imgRect.width, imgRect.height);
+        });
+
+        // Create an image element
+        const image = new Image();
+
+        // Assign the temporary canvas content as the source of the image
+        image.src = tempCanvas.toDataURL();
+
+        // Create a temporary link element to download the image
+        const link = document.createElement('a');
+        link.href = image.src;
+        link.download = 'canvas_image.png';
+
+        // Trigger the link programmatically to start the download
+        link.click();
     }
 
     function changeCanvasColor() {
@@ -145,14 +196,32 @@
         canvas.style.backgroundColor = colorInput.value;
     }
 
-    // Add event listener for keydown on the whole document
-    document.addEventListener('keydown', handleKeyDown);
+    function deleteImage(event) {
+        const canvas = document.getElementById('canvas');
+        canvas.removeChild(event.target);
+    }
 
-    // Add event listener to change the canvas color when color input changes
+    function rotateImage(event) {
+        const img = event.target;
+        let currentRotation = parseInt(img.getAttribute('data-rotation') || '0', 10);
+        currentRotation += 90;
+        img.style.transform = `rotate(${currentRotation}deg)`;
+        img.setAttribute('data-rotation', currentRotation);
+    }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Delete') {
+            const canvas = document.getElementById('canvas');
+            const selectedImage = canvas.querySelector('.selected');
+            if (selectedImage) {
+                canvas.removeChild(selectedImage);
+            }
+        }
+    });
+
     const colorInput = document.getElementById('canvas-color');
-    colorInput.addEventListener('click', changeCanvasColor);
-
+    colorInput.addEventListener('input', changeCanvasColor);
 </script>
-    
+
 </body>
 </html>

@@ -77,9 +77,9 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "myproject",
+        "NAME": "myproject1",
         "USER": "postgres",
-        "PASSWORD": "gannukingyt",
+        "PASSWORD": "rishika@03",
         "HOST": "localhost",
         "PORT": "5432",
     }
@@ -123,12 +123,10 @@ USE_TZ = True
 # Other settings...
 
 # Base URL to serve static files
-STATIC_URL = '/static/'
+STATIC_URL = 'static/'
 
-# Directories where Django will look for static files
 STATICFILES_DIRS = [
-    BASE_DIR / "static",  # Replace BASE_DIR with your project's base directory
-    # Add other directories if needed
+    BASE_DIR / 'static'
 ]
 
 # Location where collectstatic will put static files for deployment

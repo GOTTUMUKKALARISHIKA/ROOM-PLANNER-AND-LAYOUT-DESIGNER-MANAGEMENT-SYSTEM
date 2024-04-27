@@ -12,5 +12,6 @@ urlpatterns = [
     path("login_view/", login_view, name='login_view'),
     path('feedback/', feedback_view, name='feedback'),
     path('thank-you/', thank_you_view, name='thank_you'),
+    path('admin_home',admin_home,name='admin_home'),
     # Other URL patterns
 ]

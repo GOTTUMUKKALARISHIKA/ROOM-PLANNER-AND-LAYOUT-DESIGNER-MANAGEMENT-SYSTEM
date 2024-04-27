@@ -5,6 +5,7 @@ from django.contrib import auth
 from django.contrib import messages
 from .models import *
 from .forms import FeedbackForm
+from django.shortcuts import render
 
 
 def index(request):
@@ -51,7 +52,7 @@ def login_view(request):
         if user.check_password(password):
             # If username and password match, redirect to admin page
             if username == 'admin@gmail.com' and password == 'admin':
-                return render(request, 'adminhomepage.html') # Assuming the URL name for the admin page is 'admin_page'
+                return render(request, 'header1.html') # Assuming the URL name for the admin page is 'admin_page'
             else:
                 return  render(request, 'index.html')  # Assuming the URL name for the user page is 'user_page'
         else:
@@ -72,3 +73,29 @@ def feedback_view(request):
 
 def thank_you_view(request):
     return render(request, 'thank_you.html')
+
+def admin_home(request):
+    return render(request,'adminhomepage.html')
+
+from django import forms
+from .models import Image
+
+class ImageForm(forms.ModelForm):
+    class Meta:
+        model = Image
+        fields = ['image']
+
+
+
+from django.shortcuts import render, redirect
+from .forms1 import UploadImageForm
+
+def upload_image(request):
+    if request.method == 'POST':
+        form = UploadImageForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('design')
+    else:
+        form = UploadImageForm()
+    return render(request, 'upload_image.html', {'form': form})

@@ -1,10 +1,28 @@
+{% include 'header.html' %}
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Homepage</title>
 </head>
 <body>
-$END$
+
+<main>
+    <h1>Welcome, Admin!</h1>
+    <h2>Upload Images</h2>
+    <form action="{% url 'upload_image' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Upload Image</button>
+    </form>
+</main>
+
+<footer>
+    <p>&copy; 2024 Draggable Shapes to Canvas</p>
+</footer>
+
 </body>
 </html>
